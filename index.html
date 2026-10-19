@@ -127,14 +127,14 @@ section.sec{padding-bottom:4px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="eyebrow">Seaview Marine · <span id="verHead">Form V0.3, 19 October 2026</span></div>
+  <div class="eyebrow">Seaview Marine · <span id="verHead">Form V0.4, 19 October 2026</span></div>
   <h1>Tonn Nua Survey Programme: Fisheries Consultation</h1>
   <p>One form per vessel, in short pages. Fill in what applies to you and skip the rest; press <strong>Next</strong> to move on. Your answers are kept on this phone as you go.</p>
 </div></header>
 
 <div class="bar"><div class="wrap">
   <div class="row"><div id="jumpWrap" class="jumpwrap"></div></div>
-  <div class="row"><div class="meter" aria-hidden="true"><span id="meter"></span></div><small id="count">0 answered</small><small class="ver" id="verBar">V0.3</small><button type="button" class="home" id="themeBtn">Light mode</button></div>
+  <div class="row"><div class="meter" aria-hidden="true"><span id="meter"></span></div><small id="count">0 answered</small><small class="ver" id="verBar">V0.4</small><button type="button" class="home" id="themeBtn">Light mode</button></div>
 </div></div>
 
 <main class="wrap" id="form"></main>
@@ -144,7 +144,7 @@ section.sec{padding-bottom:4px}
 const ASSESSOR="Michael@Mkeatinge.onmicrosoft.com";
 /* answers go only to the independent assessor */
 const RECIPIENTS = [{name:"Seaview Marine (independent assessor)", email:ASSESSOR}];
-const FORM_VERSION = "V0.3 online";
+const FORM_VERSION = "V0.4 online";
 const FORM_DATE = "19 October 2026";
 /* light / dark switch, remembered on this phone */
 (function(){const R=document.documentElement,K="nisa-theme";
@@ -188,7 +188,7 @@ const SECTIONS=[
  {k:"years",t:"sel",q:"Years you have fished this ground",opts:["Under 5","5 to 9","10 to 19","20 to 29","30 or more"]},
  {k:"resp",t:"pair",q:"Your name and role",parts:["Name",{l:"Role",o:["Owner","Skipper","Owner and skipper","Other"]}]},
  {k:"contact",t:"text",q:"Contact number or email"},
- {k:"po",t:"sel",q:"Producer organisation membership",opts:["NIFA","SERIFF","IS&EFPO","IS&WFPO","KFO","IFPO","None","Other"]}
+ {k:"po",t:"multi",q:"I am a member of (choose any)",opts:["NIFA","SERIFF","IS&EFPO","IS&WFPO","KFO","IFPO","None","Other"]}
 ]},
 
 {id:"s2a",no:"2a",title:"The value at stake",note:"These answers are the most important part of the form. They show what is at stake on the ground affected.",fields:[
@@ -317,6 +317,7 @@ const SECTIONS=[
 const KEY="tonnnua-fisheries-form-v1";
 let S={};
 try{S=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){S={}}
+if(typeof S.po==="string")S.po=S.po?[S.po]:[];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));document.getElementById("savedAt").textContent="Saved on this device "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}catch(e){} progress()}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
@@ -444,6 +445,11 @@ function onChange(e){const el=e.target;if(!el.dataset||!el.dataset.k)return;cons
   else if(el.type==="checkbox"){const all=[...root.querySelectorAll(`input[type=checkbox][data-k="${CSS.escape(k)}"]`)].filter(x=>x.checked).map(x=>x.value);S[k]=all}
   else S[k]=el.value;
   if(k==="vessel")showReg();
+  if(k==="contact"){const v=String(S.contact||"").trim(),t=v.includes("@")?"con_email":"con_phone",prev=S._autoContact||{};
+    const set=(key,x)=>{const e=document.querySelector(`[data-k="${key}"]`);if(e)e.value=x;if(x)S[key]=x;else delete S[key]};
+    if(prev.k&&prev.k!==t&&S[prev.k]===prev.v)set(prev.k,"");
+    if(!filled(S[t])||S[t]===prev.v)set(t,v);
+    S._autoContact={k:t,v};}
   otherBoxes();
   conds();
   save();}
